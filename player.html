@@ -100,11 +100,22 @@ video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: contai
       if (el.requestFullscreen) await el.requestFullscreen();
       else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
       else throw new Error('no api');
-    } catch (_) { tip('이 화면에서는 전체 화면 버튼이 막혀 있어요. 키보드 F11 키를 눌러 주세요.'); }
+    } catch (_) { tip('이 화면에서는 전체 화면 버튼이 막혀 있어요. 키보드 F11 키로 켜고, F11 키를 한 번 더 누르면 작은 화면으로 돌아와요.'); }
   }
-  function exitFull() { (document.exitFullscreen || document.webkitExitFullscreen)?.call(document); }
-  full.addEventListener('click', () => (isFull() ? exitFull() : enterFull()));
-  document.addEventListener('fullscreenchange', () => (full.textContent = isFull() ? '⛶ 전체 화면 끄기' : '⛶ 전체 화면'));
+  function exitFull() { try { const p = (document.exitFullscreen || document.webkitExitFullscreen)?.call(document); if (p && p.catch) p.catch(() => {}); } catch (_) {} }
+  // F11로 켠 브라우저 전체 화면은 페이지가 끌 수 없다 → 알아채서 F11을 다시 누르라고 안내
+  const byF11 = () => !isFull() && Math.abs(innerHeight - screen.height) < 4 && Math.abs(innerWidth - screen.width) < 4;
+  const label = () => { full.textContent = (isFull() || byF11()) ? '⛶ 전체 화면 끄기' : '⛶ 전체 화면'; };
+  full.addEventListener('click', () => {
+    if (isFull()) exitFull();
+    else if (byF11()) tip('지금은 F11로 켠 전체 화면이에요. 키보드 F11 키를 한 번 더 누르면 작은 화면으로 돌아와요.');
+    else enterFull();
+    setTimeout(label, 300);
+  });
+  document.addEventListener('fullscreenchange', label);
+  document.addEventListener('webkitfullscreenchange', label);
+  addEventListener('resize', label);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && byF11()) tip('F11 키를 한 번 더 누르면 작은 화면으로 돌아와요.'); });
   // loop 속성이 무시되는 경우를 대비해 끝나면 직접 처음부터
   v.addEventListener('ended', () => { if (playing) { v.currentTime = 0; v.play().catch(() => {}); } });
   document.addEventListener('mousemove', showBar);

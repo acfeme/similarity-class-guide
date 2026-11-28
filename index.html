@@ -255,7 +255,7 @@ document.querySelectorAll('[data-copy]').forEach((b) => { b.onclick = async () =
   const paint = () => {
     st.textContent = playing ? (v.muted ? '🔁 반복 재생 중 (소리 꺼짐)' : '🔁 반복 재생 중') : (v.currentTime > 0 ? '⏸ 멈춤' : '▶ 재생을 누르면 끝나도 처음부터 다시 반복해요');
     stop.textContent = playing ? '■ 멈춤' : (v.currentTime > 0 ? '▶ 다시 반복 재생' : '▶ 반복 재생');
-    full.textContent = isFull() ? '⛶ 전체 화면 끄기' : '⛶ 전체 화면';
+    full.textContent = (isFull() || (Math.abs(innerHeight - screen.height) < 4 && Math.abs(innerWidth - screen.width) < 4)) ? '⛶ 전체 화면 끄기' : '⛶ 전체 화면';
   };
   async function play() { v.loop = true; try { await v.play(); } catch (e) { v.muted = true; await v.play().catch(() => {}); } }
   v.addEventListener('play', () => { playing = true; v.loop = true; paint(); showBar(); });
@@ -274,16 +274,22 @@ document.querySelectorAll('[data-copy]').forEach((b) => { b.onclick = async () =
       else throw new Error('no api');
     } catch (e) {
       box.classList.add('full'); document.body.style.overflow = 'hidden';
-      tip('이 화면에서는 브라우저 전체 화면이 막혀 있어서 창을 꽉 채웠어요. 진짜 전체 화면은 키보드 F11 키를 눌러요.');
+      tip('이 화면에서는 브라우저 전체 화면이 막혀 있어서 창을 꽉 채웠어요. 작게 하려면 이 버튼이나 Esc 키를 눌러요.');
     }
     paint(); showBar();
   }
   function exit() {
     if (box.classList.contains('full')) { box.classList.remove('full'); document.body.style.overflow = ''; }
-    else (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
+    else { try { const p = (document.exitFullscreen || document.webkitExitFullscreen)?.call(document); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
     paint(); showBar();
   }
-  full.onclick = () => (isFull() ? exit() : enter());
+  const byF11 = () => !document.fullscreenElement && !document.webkitFullscreenElement && Math.abs(innerHeight - screen.height) < 4 && Math.abs(innerWidth - screen.width) < 4;
+  full.onclick = () => {
+    if (isFull()) exit();
+    else if (byF11()) tip('지금은 F11로 켠 전체 화면이에요. 키보드 F11 키를 한 번 더 누르면 작은 화면으로 돌아와요.');
+    else enter();
+  };
+  addEventListener('resize', paint);
   document.addEventListener('fullscreenchange', () => { paint(); showBar(); });
   document.addEventListener('webkitfullscreenchange', () => { paint(); showBar(); });
   addEventListener('keydown', (e) => { if (e.key === 'Escape' && box.classList.contains('full')) exit(); });
