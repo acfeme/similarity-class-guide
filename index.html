@@ -78,6 +78,9 @@ figure{margin:0}
 .tlist li{background:#fff;border:3px solid var(--ink);border-radius:14px;box-shadow:3px 3px 0 var(--ink);padding:10px 14px;color:#4a4160}
 .tlist b{font-family:var(--display);font-weight:400;color:var(--ink);margin-right:8px}
 .alt{background:rgba(255,242,168,.35)}
+/* 시연 영상 */
+.player{background:var(--ink);border:3px solid var(--ink);border-radius:22px;box-shadow:8px 8px 0 #d8c3a2;padding:10px;overflow:hidden}
+.player video{display:block;width:100%;aspect-ratio:16/9;border-radius:14px;background:#1a1329}
 /* 시작 */
 .start{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center}
 .addr{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#fff;border:3px solid var(--ink);border-radius:16px;padding:12px 16px;box-shadow:4px 4px 0 var(--ink);margin-bottom:14px}
@@ -116,7 +119,7 @@ footer{border-top:3px solid var(--ink);padding:24px 0 34px;background:#fff8ea;fo
 
 <nav class="nav"><div class="wrap">
   <a class="brand" href="#top"><i>△</i><span>닮음 탐구 교실</span></a>
-  <div class="menu" id="menu"><a href="#quiz">문제풀이</a><a href="#lesson">수업 화면</a><a href="#games">게임</a><a href="#teacher">선생님</a><a href="#start">시작하기</a></div>
+  <div class="menu" id="menu"><a href="#video">영상</a><a href="#quiz">문제풀이</a><a href="#lesson">수업 화면</a><a href="#games">게임</a><a href="#teacher">선생님</a><a href="#start">시작하기</a></div>
 </div></nav>
 
 <header class="hero" id="top"><div class="wrap grid">
@@ -132,6 +135,12 @@ footer{border-top:3px solid var(--ink);padding:24px 0 34px;background:#fff8ea;fo
     <div class="phone float"><img src="img/phone.jpg" alt="휴대폰으로 푸는 스피드 퀴즈"></div>
   </div>
 </div></header>
+
+<!-- 시연 영상 -->
+<section id="video"><div class="wrap">
+  <div class="head"><div><div class="kicker">▶ 시연 영상</div><h2 class="sec-h">1분 30초로 보는 닮음 탐구 교실</h2><p class="one">실제 사이트를 교사 노트북·학생 태블릿·교실 TV로 조작한 모습이에요.</p></div></div>
+  <div class="player rv"><video controls playsinline preload="metadata" poster="video/poster.jpg"><source src="video/demo.mp4" type="video/mp4"><track kind="captions" srclang="ko" label="한국어 자막" src="video/demo.vtt">영상을 재생할 수 없는 브라우저예요.</video></div>
+</div></section>
 
 <!-- 문제풀이 -->
 <section id="quiz" class="alt"><div class="wrap">
