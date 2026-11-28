@@ -74,6 +74,9 @@ figure{margin:0}
 .steps{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
 .steps span{font-family:var(--display);font-size:17px;background:#fff;border:3px solid var(--ink);border-radius:14px;padding:4px 14px;box-shadow:3px 3px 0 var(--ink)}
 .steps b{color:var(--coral);font-weight:400}
+.tlist{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:10px}
+.tlist li{background:#fff;border:3px solid var(--ink);border-radius:14px;box-shadow:3px 3px 0 var(--ink);padding:10px 14px;color:#4a4160}
+.tlist b{font-family:var(--display);font-weight:400;color:var(--ink);margin-right:8px}
 .alt{background:rgba(255,242,168,.35)}
 /* 시작 */
 .start{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center}
@@ -160,12 +163,18 @@ footer{border-top:3px solid var(--ink);padding:24px 0 34px;background:#fff8ea;fo
 
 <!-- 선생님 -->
 <section id="teacher"><div class="wrap">
-  <div class="head"><div><div class="kicker">👩‍🏫 선생님 화면 <span style="color:var(--muted)">/admin</span></div><h2 class="sec-h">열고, 보고, 잠그고</h2></div></div>
+  <div class="head"><div><div class="kicker">👩‍🏫 선생님 화면</div><h2 class="sec-h">열고, 보고, 잠그고</h2><p class="one">선생님만 비밀번호로 들어가는 관리 화면이에요.</p></div></div>
   <div class="g2">
     <figure class="shot rv"><img src="img/lock.png" alt="게임 열기 잠그기 표" loading="lazy"><figcaption>🔒 게임마다 · 반마다 열기</figcaption></figure>
     <figure class="shot rv"><img src="img/records.png" alt="학생 게임 기록 전체 랭킹" loading="lazy"><figcaption>📊 전체 랭킹 · 반 랭킹</figcaption></figure>
   </div>
-  <div class="steps rv"><span>📚 수업 자료 반별 열기</span><span>📈 진도 현황</span><span>🔁 재응시</span><span>🧺 사과 현황</span><span>🔐 비밀번호 초기화</span></div>
+  <ul class="tlist rv">
+    <li><b>🔒 열기·잠그기</b> 문제풀이 단계, 수업 화면, 게임을 반마다 따로 열고 잠가요. 잠그면 15초 안에 학생 화면도 닫혀요.</li>
+    <li><b>📈 진도 현황</b> 날짜·반별로 학생마다 어느 단계까지 했는지, 피드백 문제를 했는지 봐요.</li>
+    <li><b>🔁 재응시</b> 한 번만 푸는 단계를 학생에게 다시 열어 줘요.</li>
+    <li><b>📊 게임 기록</b> 전체 랭킹, 반 랭킹순·번호순으로 보고 아직 안 한 학생도 확인해요.</li>
+    <li><b>🧺 사과 현황 · 🔐 비밀번호</b> 학생별 사과를 보고, 비밀번호를 잊은 학생은 초기화해요.</li>
+  </ul>
 </div></section>
 
 <!-- 시작하기 -->
@@ -174,8 +183,6 @@ footer{border-top:3px solid var(--ink);padding:24px 0 34px;background:#fff8ea;fo
   <div class="start">
     <div>
       <div class="addr rv"><span class="who">학생</span><a href="https://triangle-parallel.vercel.app" target="_blank" rel="noopener">triangle-parallel.vercel.app</a><button data-copy="https://triangle-parallel.vercel.app">복사</button></div>
-      <div class="addr rv"><span class="who">선생님</span><a href="https://triangle-parallel.vercel.app/admin" target="_blank" rel="noopener">triangle-parallel.vercel.app/admin</a><button data-copy="https://triangle-parallel.vercel.app/admin">복사</button></div>
-      <div class="addr rv"><span class="who">무게중심 수업</span><a href="https://centroid-class.vercel.app" target="_blank" rel="noopener">centroid-class.vercel.app</a><button data-copy="https://centroid-class.vercel.app">복사</button></div>
     </div>
     <div class="qr rv">📱 학생 입장<div id="qr"></div><span style="font-size:15px;color:var(--muted)">TV에 띄워 두세요</span></div>
   </div>
