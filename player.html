@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>닮음 탐구 교실 · 시연 영상</title>
+<style>
+/* 부스 TV용 반복 재생기: [반복 재생]을 누르면 [멈춤]을 누를 때까지 처음부터 계속 다시 재생 */
+:root { --ink: #1d1630; --panel: #2a2140; --line: #3a2f58; --fg: #f3effa; --dim: #a59cc0; --gold: #ffd93d; --red: #ff6b6b; --navy: #3d2f6b; }
+* { box-sizing: border-box; margin: 0; }
+[hidden] { display: none !important; }
+html, body { height: 100%; background: #000; color: var(--fg); font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', system-ui, sans-serif; overflow: hidden; }
+video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
+#start { position: fixed; inset: 0; display: grid; place-items: center; background: radial-gradient(900px 500px at 70% 20%, #3b2a72, transparent 70%), var(--ink); text-align: center; z-index: 5; }
+#start h1 { font-size: clamp(36px, 6vw, 80px); font-weight: 900; letter-spacing: -.02em; }
+#start h1 span { color: var(--gold); }
+#start p { color: var(--dim); font-size: clamp(18px, 2vw, 26px); margin-top: 14px; }
+.big { margin-top: 44px; font: inherit; font-size: clamp(24px, 3vw, 38px); font-weight: 800; color: var(--ink); background: var(--gold); border: 0; border-radius: 999px; padding: 22px 56px; cursor: pointer; box-shadow: 0 16px 40px rgba(255,212,59,.3); }
+.big:hover { transform: translateY(-2px); }
+#bar { position: fixed; left: 50%; top: 24px; transform: translateX(-50%); display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 999px; background: rgba(10,15,31,.88); border: 1px solid var(--line); z-index: 6; transition: opacity .4s; }
+#bar.hide { opacity: 0; pointer-events: none; }
+#bar button { font: inherit; font-size: 20px; font-weight: 800; border: 0; border-radius: 999px; padding: 12px 26px; cursor: pointer; color: #fff; background: var(--panel); white-space: nowrap; flex: none; }
+#bar { width: max-content; max-width: calc(100vw - 32px); }
+/* 휴대폰: 버튼을 작게, 상태 글자는 숨기고 한 줄에 */
+@media (max-width: 600px) {
+  #bar { gap: 6px; padding: 8px; top: 12px; }
+  #bar #loopState { display: none; }
+  #bar button { font-size: 15px; padding: 10px 14px; }
+  .big { padding: 18px 34px; }
+}
+#bar #stop { background: var(--red); }
+#bar #loopState { font-size: 17px; color: var(--gold); padding: 0 10px; white-space: nowrap; }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+</style>
+</head>
+<body>
+<video id="v" src="video/demo.mp4" playsinline preload="auto"></video>
+
+<div id="start">
+  <div>
+    <h1>닮음 <span>탐구 교실</span></h1>
+    <p>시연 영상 · 1분 32초</p>
+    <button class="big" id="go" type="button">▶ 반복 재생 시작</button>
+    <p style="font-size:17px;margin-top:18px">[멈춤]을 누를 때까지 처음부터 계속 다시 재생해요 · 스페이스바: 멈춤/이어서 재생 · Home 키: 처음부터</p>
+  </div>
+</div>
+
+<div id="toast" hidden style="position:fixed;left:50%;top:110px;transform:translateX(-50%);z-index:7;background:#fff;color:#0a0f1f;font-size:22px;font-weight:800;padding:16px 26px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:calc(100vw - 32px);text-align:center"></div>
+<div id="hint" hidden style="position:fixed;right:20px;bottom:16px;z-index:4;font-size:15px;color:rgba(255,255,255,.45)">마우스를 움직이거나 화면을 누르면 버튼이 나와요</div>
+<div id="bar" hidden>
+  <span id="loopState">🔁 반복 재생 중</span>
+  <button id="full" type="button">⛶ 전체 화면</button>
+  <button id="restart" type="button">⏮ 처음부터</button>
+  <button id="stop" type="button">■ 멈춤</button>
+</div>
+
+<script>
+(() => {
+  const v = document.getElementById('v'), start = document.getElementById('start'), bar = document.getElementById('bar');
+  const go = document.getElementById('go'), stop = document.getElementById('stop'), full = document.getElementById('full'), state = document.getElementById('loopState');
+  let playing = false, hideTimer = null, wake = null;
+
+  async function keepAwake(on) {
+    try {
+      if (on && 'wakeLock' in navigator) wake = await navigator.wakeLock.request('screen');
+      else if (!on && wake) { await wake.release(); wake = null; }
+    } catch (_) {}
+  }
+  function showBar() {
+    bar.classList.remove('hide');
+    clearTimeout(hideTimer);
+    if (playing) hideTimer = setTimeout(() => bar.classList.add('hide'), 2500);
+  }
+  async function play() {
+    v.loop = true;
+    try { await v.play(); } catch (_) { v.muted = true; await v.play().catch(() => {}); }
+    playing = true;
+    start.hidden = true; bar.hidden = false; document.getElementById('hint').hidden = false;
+    state.textContent = v.muted ? '🔁 반복 재생 중 (소리 꺼짐)' : '🔁 반복 재생 중';
+    stop.textContent = '■ 멈춤';
+    keepAwake(true); showBar();
+  }
+  function pause() {
+    v.pause(); playing = false;
+    state.textContent = '⏸ 멈춤';
+    stop.textContent = '▶ 다시 반복 재생';
+    keepAwake(false); showBar();
+  }
+  go.addEventListener('click', () => { play(); enterFull(); });
+  stop.addEventListener('click', () => (playing ? pause() : play()));
+  // 처음부터: 멈춰 있어도 0초로 돌아가 바로 반복 재생
+  document.getElementById('restart').addEventListener('click', () => { v.currentTime = 0; play(); });
+  // 전체 화면: 표준 → 사파리 방식 순서로 시도하고, 막히면 F11 안내
+  const toast = document.getElementById('toast');
+  function tip(msg) { toast.textContent = msg; toast.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => (toast.hidden = true), 5000); }
+  function isFull() { return document.fullscreenElement || document.webkitFullscreenElement; }
+  async function enterFull() {
+    const el = document.documentElement;
+    try {
+      if (el.requestFullscreen) await el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      else throw new Error('no api');
+    } catch (_) { tip('이 화면에서는 전체 화면 버튼이 막혀 있어요. 키보드 F11 키를 눌러 주세요.'); }
+  }
+  function exitFull() { (document.exitFullscreen || document.webkitExitFullscreen)?.call(document); }
+  full.addEventListener('click', () => (isFull() ? exitFull() : enterFull()));
+  document.addEventListener('fullscreenchange', () => (full.textContent = isFull() ? '⛶ 전체 화면 끄기' : '⛶ 전체 화면'));
+  // loop 속성이 무시되는 경우를 대비해 끝나면 직접 처음부터
+  v.addEventListener('ended', () => { if (playing) { v.currentTime = 0; v.play().catch(() => {}); } });
+  document.addEventListener('mousemove', showBar);
+  document.addEventListener('touchstart', showBar);
+  v.addEventListener('click', showBar);
+  document.addEventListener('keydown', (e) => {
+    if (start.hidden === false) return;
+    if (e.code === 'Space') { e.preventDefault(); playing ? pause() : play(); }
+    if (e.code === 'Home') { e.preventDefault(); v.currentTime = 0; play(); }
+  });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && playing) keepAwake(true); });
+  v.addEventListener('error', () => { start.querySelector('p').textContent = '영상을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.'; });
+})();
+</script>
+</body>
+</html>
