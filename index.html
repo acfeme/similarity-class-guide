@@ -81,6 +81,20 @@ figure{margin:0}
 /* 시연 영상 */
 .player{background:var(--ink);border:3px solid var(--ink);border-radius:22px;box-shadow:8px 8px 0 #d8c3a2;padding:10px;overflow:hidden}
 .player video{display:block;width:100%;aspect-ratio:16/9;border-radius:14px;background:#1a1329}
+.vbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;padding:10px 4px 2px}
+.vbar span{margin-right:auto;font-family:var(--display);font-size:17px;color:var(--sun)}
+.vbar button{font-family:var(--display);font-size:18px;border:0;border-radius:999px;padding:9px 20px;cursor:pointer;color:#fff;background:#3a2f58;white-space:nowrap}
+.vbar button:hover{background:#4b3d72}
+.vbar .stop{background:var(--coral)}
+.vtip{position:absolute;left:50%;top:18px;transform:translateX(-50%);z-index:3;background:#fff;color:var(--ink);font-family:var(--display);font-size:18px;padding:12px 20px;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:calc(100% - 32px);text-align:center}
+.player{position:relative}
+/* 전체 화면(브라우저 기능 또는 화면 꽉 채우기) */
+.player:fullscreen,.player.full{position:fixed;inset:0;z-index:200;border:0;border-radius:0;padding:0;background:#000;display:flex;flex-direction:column}
+.player:-webkit-full-screen{position:fixed;inset:0;z-index:200;border:0;border-radius:0;padding:0;background:#000;display:flex;flex-direction:column}
+.player:fullscreen video,.player.full video,.player:-webkit-full-screen video{flex:1;min-height:0;width:100%;height:100%;aspect-ratio:auto;border-radius:0;object-fit:contain;background:#000}
+.player:fullscreen .vbar,.player.full .vbar,.player:-webkit-full-screen .vbar{position:absolute;left:50%;top:18px;transform:translateX(-50%);background:rgba(20,14,34,.88);border-radius:999px;padding:8px 10px;width:max-content;max-width:calc(100vw - 24px);flex-wrap:nowrap;transition:opacity .4s}
+.player .vbar.hide{opacity:0;pointer-events:none}
+@media (max-width:620px){.vbar span{display:none}.vbar button{font-size:15px;padding:8px 13px}}
 /* 시작 */
 .start{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center}
 .addr{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#fff;border:3px solid var(--ink);border-radius:16px;padding:12px 16px;box-shadow:4px 4px 0 var(--ink);margin-bottom:14px}
@@ -139,7 +153,9 @@ footer{border-top:3px solid var(--ink);padding:24px 0 34px;background:#fff8ea;fo
 <!-- 시연 영상 -->
 <section id="video"><div class="wrap">
   <div class="head"><div><div class="kicker">▶ 시연 영상</div><h2 class="sec-h">1분 30초로 보는 닮음 탐구 교실</h2><p class="one">실제 사이트를 교사 노트북·학생 태블릿·교실 TV로 조작한 모습이에요.</p></div></div>
-  <div class="player rv"><video controls playsinline preload="metadata" poster="video/poster.jpg"><source src="video/demo.mp4" type="video/mp4"><track kind="captions" srclang="ko" label="한국어 자막" src="video/demo.vtt">영상을 재생할 수 없는 브라우저예요.</video></div>
+  <div class="player rv" id="player"><video id="demo" controls playsinline preload="metadata" poster="video/poster.jpg"><source src="video/demo.mp4" type="video/mp4"><track kind="captions" srclang="ko" label="한국어 자막" src="video/demo.vtt">영상을 재생할 수 없는 브라우저예요.</video>
+    <div class="vbar" id="vbar"><span id="vstate">▶ 재생을 누르면 끝나도 처음부터 다시 반복해요</span><button id="vfull" type="button">⛶ 전체 화면</button><button id="vre" type="button">⏮ 처음부터</button><button id="vstop" class="stop" type="button">▶ 반복 재생</button></div>
+    <div class="vtip" id="vtip" hidden></div></div>
 </div></section>
 
 <!-- 문제풀이 -->
@@ -226,6 +242,53 @@ lb.onclick = () => lb.classList.remove('on');
 addEventListener('keydown', (e) => { if (e.key === 'Escape') lb.classList.remove('on'); });
 // 주소 복사
 document.querySelectorAll('[data-copy]').forEach((b) => { b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = '복사됨 ✓'; } catch (e) { b.textContent = '길게 눌러 복사'; } setTimeout(() => { b.textContent = '복사'; }, 1600); }; });
+// ---- 시연 영상: 전체 화면 · 처음부터 · 멈춤/반복 재생 ----
+(() => {
+  const v = document.getElementById('demo'), box = document.getElementById('player'), bar = document.getElementById('vbar');
+  const st = document.getElementById('vstate'), stop = document.getElementById('vstop'), full = document.getElementById('vfull'), tipEl = document.getElementById('vtip');
+  if (!v) return;
+  let playing = false, hideT = null;
+  const tip = (m) => { tipEl.textContent = m; tipEl.hidden = false; clearTimeout(tipEl._t); tipEl._t = setTimeout(() => (tipEl.hidden = true), 4500); };
+  const isFull = () => !!(document.fullscreenElement || document.webkitFullscreenElement || box.classList.contains('full'));
+  const showBar = () => { bar.classList.remove('hide'); clearTimeout(hideT); if (playing && isFull()) hideT = setTimeout(() => bar.classList.add('hide'), 2500); };
+  const paint = () => {
+    st.textContent = playing ? (v.muted ? '🔁 반복 재생 중 (소리 꺼짐)' : '🔁 반복 재생 중') : (v.currentTime > 0 ? '⏸ 멈춤' : '▶ 재생을 누르면 끝나도 처음부터 다시 반복해요');
+    stop.textContent = playing ? '■ 멈춤' : (v.currentTime > 0 ? '▶ 다시 반복 재생' : '▶ 반복 재생');
+    full.textContent = isFull() ? '⛶ 전체 화면 끄기' : '⛶ 전체 화면';
+  };
+  async function play() { v.loop = true; try { await v.play(); } catch (e) { v.muted = true; await v.play().catch(() => {}); } }
+  v.addEventListener('play', () => { playing = true; v.loop = true; paint(); showBar(); });
+  v.addEventListener('pause', () => { if (v.ended) return; playing = false; paint(); showBar(); });
+  // loop가 무시되는 경우를 대비해 끝나면 직접 처음부터
+  v.addEventListener('ended', () => { v.currentTime = 0; v.play().catch(() => {}); });
+  stop.onclick = () => (playing ? v.pause() : play());
+  // 처음부터: 멈춰 있어도 0초로 돌아가 바로 반복 재생
+  document.getElementById('vre').onclick = () => { v.currentTime = 0; play(); };
+  // 전체 화면: 표준 → 사파리 → (막혀 있으면) 화면 꽉 채우기
+  async function enter() {
+    try {
+      if (box.requestFullscreen) await box.requestFullscreen();
+      else if (box.webkitRequestFullscreen) box.webkitRequestFullscreen();
+      else if (v.webkitEnterFullscreen) { v.webkitEnterFullscreen(); return; } // 아이폰: 기본 전체 화면 재생기
+      else throw new Error('no api');
+    } catch (e) {
+      box.classList.add('full'); document.body.style.overflow = 'hidden';
+      tip('이 화면에서는 브라우저 전체 화면이 막혀 있어서 창을 꽉 채웠어요. 진짜 전체 화면은 키보드 F11 키를 눌러요.');
+    }
+    paint(); showBar();
+  }
+  function exit() {
+    if (box.classList.contains('full')) { box.classList.remove('full'); document.body.style.overflow = ''; }
+    else (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
+    paint(); showBar();
+  }
+  full.onclick = () => (isFull() ? exit() : enter());
+  document.addEventListener('fullscreenchange', () => { paint(); showBar(); });
+  document.addEventListener('webkitfullscreenchange', () => { paint(); showBar(); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && box.classList.contains('full')) exit(); });
+  box.addEventListener('mousemove', showBar); box.addEventListener('touchstart', showBar, { passive: true });
+  paint();
+})();
 // QR
 try { new QRCode(document.getElementById('qr'), { text: 'https://triangle-parallel.vercel.app', width: 190, height: 190, colorDark: '#2A2140', colorLight: '#ffffff' }); }
 catch (e) { document.getElementById('qr').textContent = 'triangle-parallel.vercel.app'; }
